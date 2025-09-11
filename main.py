@@ -52,12 +52,15 @@ async def update_time():
 @client.on(events.NewMessage)
 async def handler(event):
     if event.is_private:  # faqat lichka uchun
-        await event.respond("Salom yozganingizdan hursandman 😊 Tez orada javob yozaman!")
+        await event.respond(
+            "Salom yozganingizdan hursandman 😊 Tez orada javob yozaman!"
+        )
 
 async def main():
     await client.start()
     print("🤖 Bot ishga tushdi!")
     await update_time()
 
+# <<< Shu satr bilan tugatish kerak edi
 with client:
     client.loop.run_until_complete(main())
