@@ -1,44 +1,63 @@
+import asyncio
 from telethon import TelegramClient, events
 from telethon.sessions import StringSession
 from telethon.tl.functions.account import UpdateProfileRequest
-import asyncio, datetime, random
+from datetime import datetime
+import pytz
+import itertools
 
-# 🔑 API ma'lumotlari
+# 🔑 O'zingizning ma'lumotlaringiz
 API_ID = 21716532
 API_HASH = "4a9ea732220e7d827166f5b0780426c4"
 STRING_SESSION = "1ApWapzMBuxoGsjidD01xlWyimQjv4WhFZKNk9crjVxK5iJLJgosY_2QyvqhD2NEn4UQgjTdpX_qljuKZhCyfKy1QMhUzd9Hi5fNmZm7G8LtnqA67XSG-cB3NIn8QxaPV8MErhtV1YJQcETIckNJk8LUkDrQrxPk2fKjaY6qcSTJZwtTWn2rDZZUg6ztNocSPwPNNo0nWCiiFSJIlnHDz0Dyr1zHyHeq-cDFhoktSelSJyEEdsbPG2WdXxJS9Zzp2GztEZC7Jd0eMoamCGYoJuLcy8F0uJYZd4JfX39Alf5ymidMDWcK7it-JFa1GoUhR9glVZkcRnVP5wkEpUhsM2Jk10zSL09c="
 
-# Har xil fontlar
-FONTS = [
-    str.maketrans("0123456789:", "𝟶𝟷𝟸𝟹𝟺𝟻𝟼𝟽𝟾𝟿:"),
-    str.maketrans("0123456789:", "⓿①②③④⑤⑥⑦⑧⑨:"),
-    str.maketrans("0123456789:", "０１２３４５６７８９:"),
-    str.maketrans("0123456789:", "❶❷❸❹❺❻❼❽❾⓿:"),
-]
-
 client = TelegramClient(StringSession(STRING_SESSION), API_ID, API_HASH)
 
-# 🕒 Nickname har daqiqada soat bilan yangilanadi
-async def update_name():
+# ⏰ Uzbekistan vaqti zonasi
+uzb_tz = pytz.timezone("Asia/Tashkent")
+
+# Soatni turli stilda ko‘rsatish funksiyalari
+def format_time_styles(time_str):
+    styles = {
+        "Default": time_str,
+        "Monospace": f"```{time_str}```",
+        "Strike-Through": "".join([ch + "\u0336" for ch in time_str]),
+        "SuperScript": "".join([ch + "\u2070" for ch in time_str]),
+        "SubScript": "".join([ch + "\u2080" for ch in time_str]),
+        "Bold": f"**{time_str}**",
+        "Bold Serif": f"𝙱𝚘𝚕𝚍 {time_str}",
+        "Double Struck": f"𝔻𝕊 {time_str}",
+        "Circle": f"ⓒ {time_str} ⓣ",
+        "Double Circle": f"🅞 {time_str} 🅞",
+        "Dark Circle": f"⬤ {time_str} ⬤",
+        "Crazify": f"~{time_str}~"
+    }
+    return styles
+
+# Har minutda familiyaga soat qo‘yish
+async def update_time():
+    styles_cycle = itertools.cycle(list(format_time_styles("22:55").values()))
     while True:
-        now = datetime.datetime.now().strftime("%H:%M")
-        style = random.choice(FONTS)
-        fancy_time = now.translate(style)
+        now = datetime.now(uzb_tz).strftime("%H:%M")
+        style_time = next(styles_cycle).replace("22:55", now)
         try:
-            await client(UpdateProfileRequest(first_name=fancy_time))
+            await client(UpdateProfileRequest(
+                last_name=style_time  # familiya joyida soat bo‘ladi
+            ))
         except Exception as e:
             print("Xato:", e)
-        await asyncio.sleep(60)
+        await asyncio.sleep(60)  # 1 minutdan keyin yangilash
 
-# 📩 Har qanday xabarga avtomatik javob
-@client.on(events.NewMessage(incoming=True))
+# Avto javob faqat lichkaga
+@client.on(events.NewMessage)
 async def handler(event):
-    await event.reply("Salom yozganingizdan hursandman 🙂 tez orada javob yozaman.")
+    if event.is_private:  # faqat lichka uchun
+        await event.respond("Salom yozganingizdan hursandman 😊 Tez orada javob yozaman!")
 
 async def main():
-    asyncio.create_task(update_name())
-    print("✅ Bot ishga tushdi (Render 24/7)")
-    await client.run_until_disconnected()
+    await client.start()
+    print("🤖 Bot ishga tushdi!")
+    await update_time()
 
 with client:
     client.loop.run_until_complete(main())
