@@ -6,51 +6,41 @@ from datetime import datetime
 import pytz
 import itertools
 
-# 🔑 O'zingizning ma'lumotlaringizni kiriting
 API_ID = 21716532
 API_HASH = "4a9ea732220e7d827166f5b0780426c4"
-STRING_SESSION = "1ApWapzMBu2aSZ2JY9LBc92awATHivnYj7i_0dnfetj1UpZsOSWbK9721JmaLkKxaSyFZxbJC9k6qmxcqyLN3jFxf-iSoO9sXFM0tgZrvJwxPBphsfS9RY4nax1LDJ7OIUKHHynKoVESgH3haCJf81ThHYcATWMavKvIOZstJ8iLedbbGDVh1IKLpsJSMh3tSYKqhQAlRiz7cbpNXuL9pYkui_DEriTXQKlVajhoHW6VnZw_faL0Psp5KlMIP8sXYmypwC-CF8r_mmkrY3GAfnBGCwFzVGx4QPVdO7t4tE3TG95QkXgU0FxOK0ijFCwQal88xuLSGt9HshtTv-ykWrGSi7OOQMhg="
+STRING_SESSION = "YANGI_STRING_SESSIONINGIZNI_BU_YERGA_QOYING"
 
 client = TelegramClient(StringSession(STRING_SESSION), API_ID, API_HASH)
-
-# 🇺🇿 Uzbekistan vaqti
 uzb_tz = pytz.timezone("Asia/Tashkent")
 
-# ⏰ Soatni turli toza uslublarda chiqarish
-def time_styles(time_str):
+# --- Turli fontlarda soat (faqat raqam va :) ---
+def style_times(hhmm):
     return [
-        f"{time_str}",                 # Default 22:55
-        f"```{time_str}```",           # Monospace
-        f"**{time_str}**",             # Bold
-        f"__{time_str}__",             # Bold+Underline
-        f"*{time_str}*",               # Italic
-        f"~{time_str}~",               # Strike-Through
-        f"^{time_str}^",               # Superscript-style
-        f"_{time_str}_",               # Subscript-style
-        f"𝙱𝚘𝚕𝚍 {time_str}",           # Bold Serif
-        f"𝔻𝕊 {time_str}",              # Double Struck
+        hhmm,
+        ''.join({'0':'𝟶','1':'𝟷','2':'𝟸','3':'𝟹','4':'𝟺','5':'𝟻','6':'𝟼','7':'𝟽','8':'𝟾','9':'𝟿',':':':'}.get(c,c) for c in hhmm),
+        ''.join({'0':'𝟬','1':'𝟭','2':'𝟮','3':'𝟯','4':'𝟰','5':'𝟱','6':'𝟲','7':'𝟳','8':'𝟴','9':'𝟵',':':':'}.get(c,c) for c in hhmm),
+        ''.join({'0':'𝟘','1':'𝟙','2':'𝟚','3':'𝟛','4':'𝟜','5':'𝟝','6':'𝟞','7':'𝟟','8':'𝟠','9':'𝟡',':':':'}.get(c,c) for c in hhmm),
+        ''.join({'0':'⓿','1':'①','2':'②','3':'③','4':'④','5':'⑤','6':'⑥','7':'⑦','8':'⑧','9':'⑨',':':':'}.get(c,c) for c in hhmm),
     ]
 
-# ⏳ Familiyaga har daqiqa soat qo‘yish
 async def update_time():
-    styles_cycle = itertools.cycle(time_styles("22:55"))
     while True:
         now = datetime.now(uzb_tz).strftime("%H:%M")
-        style_time = next(styles_cycle).replace("22:55", now)
-        try:
-            await client(UpdateProfileRequest(
-                last_name=style_time  # familiya joyida soat
-            ))
-        except Exception as e:
-            print("Xato:", e)
-        await asyncio.sleep(60)  # 1 daqiqada yangilash
+        for s in style_times(now):
+            await client(UpdateProfileRequest(last_name=s))
+            await asyncio.sleep(60)
+            now = datetime.now(uzb_tz).strftime("%H:%M")
 
-# 🤖 Avto-javob faqat lichka (bitta xabarga bitta javob)
+# === Avto-javob faqat lichkaga, foydalanuvchiga bir marta ===
+answered_users = set()
+
 @client.on(events.NewMessage)
 async def handler(event):
     if event.is_private:
-        # reply o‘rniga respond ishlatamiz, Telethon bitta javobni ta’minlaydi
-        await event.respond("Salom! Javobingizni ko‘rib chiqaman 😊")
+        user_id = event.sender_id
+        if user_id not in answered_users:
+            await event.respond("Salom! Javobingizni ko‘rib chiqaman 😊")
+            answered_users.add(user_id)
 
 async def main():
     await client.start()
