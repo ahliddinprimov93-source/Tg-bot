@@ -9,7 +9,7 @@ import itertools
 # 🔑 O'zingizning ma'lumotlaringiz
 API_ID = 21716532
 API_HASH = "4a9ea732220e7d827166f5b0780426c4"
-STRING_SESSION = "1ApWapzMBuxoGsjidD01xlWyimQjv4WhFZKNk9crjVxK5iJLJgosY_2QyvqhD2NEn4UQgjTdpX_qljuKZhCyfKy1QMhUzd9Hi5fNmZm7G8LtnqA67XSG-cB3NIn8QxaPV8MErhtV1YJQcETIckNJk8LUkDrQrxPk2fKjaY6qcSTJZwtTWn2rDZZUg6ztNocSPwPNNo0nWCiiFSJIlnHDz0Dyr1zHyHeq-cDFhoktSelSJyEEdsbPG2WdXxJS9Zzp2GztEZC7Jd0eMoamCGYoJuLcy8F0uJYZd4JfX39Alf5ymidMDWcK7it-JFa1GoUhR9glVZkcRnVP5wkEpUhsM2Jk10zSL09c="
+STRING_SESSION = "1ApWapzMBuxwRTZZTJGUpxZn45kFu5mg1jg63hKaZZJwUV7BZp46tc8b_UukActmz0xuoRFm5oyhixJXEpuuM15Yc-35JO6wU03rXD41A_m6EzbH793gCt3ac3Q47qIdqp1DihL3FSiHtlLbEI2Ozwr16HrQ3DBvzCQkfJQ3MK0CWb--t2hPfkaE21-FqN-Ir6COPgAucDIy0Yj7CVUSUj18ISM-Qzj_U_eo1PiKjcztOyimHB1s2erq0zY4aRS5_ooLflh7csxCB6DjpfMwU9Eni2H0cs0duPzNhWYyrZvcGyepK4szTZaTeKbAkDQh8nfzaLOUOP8kkQDozSfBFArxh7QazRUg="
 
 client = TelegramClient(StringSession(STRING_SESSION), API_ID, API_HASH)
 
@@ -52,15 +52,12 @@ async def update_time():
 @client.on(events.NewMessage)
 async def handler(event):
     if event.is_private:  # faqat lichka uchun
-        await event.respond(
-            "Salom yozganingizdan hursandman 😊 Tez orada javob yozaman!"
-        )
+        await event.respond("Salom yozganingizdan hursandman 😊 Tez orada javob yozaman!")
 
 async def main():
     await client.start()
     print("🤖 Bot ishga tushdi!")
     await update_time()
 
-# <<< Shu satr bilan tugatish kerak edi
 with client:
     client.loop.run_until_complete(main())
